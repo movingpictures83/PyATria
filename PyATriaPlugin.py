@@ -12,7 +12,7 @@ import networkx
 # But must use the actual edge weights when computing distance
 # Also: "start" is now an integer i
 # I have to build a different graph ON THE FLY
-from PageRank.pythonds.graphs import PriorityQueue, Graph, Vertex
+from pythonds.graphs import PriorityQueue, Graph, Vertex
 numdiff = 0
 import itertools
 
