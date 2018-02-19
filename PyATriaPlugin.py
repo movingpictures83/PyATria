@@ -16,6 +16,7 @@ from pythonds.graphs import PriorityQueue, Graph, Vertex
 numdiff = 0
 import itertools
 
+import PyPluMA
 # Optimization: This function should be called *one* time.
 # The graph will be built with all nodes duplicated.
 # All subsequent graphs will use modifyGraph, which will
@@ -46,7 +47,6 @@ def buildATriaGraph(myfile):
        contents = line.split(',')
        for j in range(n):
           value = float(contents[j+1])
-          print value, " "
           if (i != j and value > 0):
               if (not added[i]):
                  aGraph.addVertex(bacteria[i].strip()+"+", i)
@@ -72,10 +72,9 @@ def buildATriaGraph(myfile):
        if (added[i]):
           candidates.append(i)
        i = i + 1
-       print ""
      # Return the graph
     else:
-      print "Making graph: "
+      PyPluMA.log("Making graph: ")
       G = networkx.read_gml(myfile)
       bacteria = G.nodes()
       n = len(bacteria)
@@ -125,7 +124,7 @@ def buildATriaGraph(myfile):
               aGraph.addEdge(bacteria[i].strip()+"+", bacteria[j].strip()+"-", value)
               aGraph.addEdge(bacteria[i].strip()+"-", bacteria[j].strip()+"+", value)
       candidates.sort()  
-    print "Done."
+    PyPluMA.log("Done.")
     return bacteria, aGraph, candidates
 
 
@@ -164,7 +163,7 @@ def initGL(n):
  #gains = numpy.zeros([n])
  nopluspath = numpy.zeros([n, n])
  nominuspath = numpy.zeros([n, n])
- print "Initializing edge depends..."
+ PyPluMA.log("Initializing edge depends...")
  #  edgedepends.append([])
  #edgedepends = numpy.ndarray([n])
  #  for j in range(n):
@@ -172,7 +171,7 @@ def initGL(n):
  #        edgedepends[i].append(None)
  #     else:
  #        edgedepends[i].append(set())
- print "Done"
+ PyPluMA.log("Done")
 
 
 # www.peterbe.com/plog/uniqifiers-benchmark
@@ -270,11 +269,6 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
              nodes.append((0, v))
              v.setDistance(0)
              aGraph.reactivateVertex(v.id)
-          #else:
-          #   aGraph.deactivate(v.id)
-          #   reactiv.add(v.id)
-          #   print "Not appending ", v.id, " for: ", bacteria[start].strip(), " ", start
-       #nodes.append((abs(v.getDistance()), v))
     startV = aGraph.getVertex(bacteria[start].strip()+"+")
     startV.setDistance(1)
     startVNeg = aGraph.getVertex(bacteria[start].strip()+"-")
@@ -285,7 +279,6 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
     # Underlying max-heap should be populated with absolute values of distances
     # When the algorithm starts, startV's distance is 1 and the rest are 0
     # So, startV will be the first vertex out of the max-heap
-    #print "Running Dijkstra"
     pq = PriorityQueue()
     pq.buildHeap(nodes)
     #pq.buildHeap([(abs(v.getDistance()),v) for v in aGraph])
@@ -293,20 +286,14 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
     
 
     
-    #print "Queue..."
     while not pq.isEmpty():
         currentVert = pq.delMax()  # Get the vertex with the maximum distance
         j = currentVert.index
         dist = currentVert.getDistance()
-        #print "Running: ", start, " ", j, " ", dist, " ", G[start][j], " ", L[start][j]
         if (dist == 0):
-           #for v in reactiv:
-           #   aGraph.reactivateVertex(v)
            return
         sign = currentVert.sign()
-        #print "Path..."
         if (start < j and ((G[start][j] == 0 and dist > 0) or (L[start][j] == 0 and dist < 0))):
-        #if ((G[start][j] == 0 and dist > 0) or (L[start][j] == 0 and dist < 0)):
               u[start] += dist
               u[j] += dist
               if (sign == '+'):
@@ -329,15 +316,11 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
               prev = currentVert.getPred()
               d = 1
               # prev could be None for a deactivated vertex
-              #print "Loop..."
-              #tmpedge = set()
               tmpedge = []
               previd = -1
               while (prev != None and prev != startV):
                  previd = prev.index
-                 #print "PREVID: ", prev.index, " START: ", start
                  addEdgeDependency(start, j, tuple(sorted((previd, curr.index))))
-                 #edgedepends[start][j].add(tuple(sorted((previd, curr.index))))
                  if (start < previd):
                     d *= prev.getWeight(curr)
                     flag = False
@@ -394,7 +377,6 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
                        #edgedepends[start][j].add(tuple(sorted((start, curr.index))))
              
         # Loop over all of the neighbors of this vertex
-        #print "Active: ", currentVert.index
         for nextVert in currentVert.active:
         #for nextVert in currentVert.getConnections():
             # The newly computed distance is the current vertex's distance
@@ -434,16 +416,16 @@ def atria_centrality(bacteria, myGraph, candidates):
  U = numpy.zeros([n])
  eps = 1. / 10**6  
  # Table header
- print "Rank\tOTU\tPAY\n"
+ PyPluMA.log("Rank\tOTU\tPAY\n")
 
  # Build initial graph for Dijkstra
  
- print "Initializing Graph..."
+ PyPluMA.log("Initializing Graph...")
  #myGraph = buildGraphAndCandidates(bacteria, ADJ, candidates, currentcandidates)
  currentcandidates = []
  for i in range(len(candidates)):
     currentcandidates.append(candidates[i])
- print "Done." 
+ PyPluMA.log("Done.") 
  maxindex = -1
  # Will run n times, if there are n nodes
  eliminated = numpy.zeros([n]) 
@@ -457,16 +439,10 @@ def atria_centrality(bacteria, myGraph, candidates):
         # Update the graph, have only one copy of the start node
         # Duplicate the former start node
         if (numcan == 0):
-            print "Breaking early"
+            PyPluMA.log("Breaking early")
             break
-        #  if (eliminated[j]):
-        #     myGraph.deactivate(bacteria[k].strip())
-        #if (maxm > max(len(losses[j]), len(gains[j])) and j not in skip):
-        #   print "We would skip: ", bacteria[j].strip()
         if (j not in skip):
-           #print "Running Dijkstra for node: ", j
            dijkstra(j, bacteria, myGraph, eliminated, (i==0))
-           #print "Done.  Updating graph..."
            g = len(gains[j])
            l = len(losses[j])
            for x in range(min(g, l)):
@@ -579,35 +555,7 @@ def atria_centrality(bacteria, myGraph, candidates):
                     nogains[gain].remove(nogain)
 
 
-           #for x in range(len(gains[j])):
-           #   index1 = gains[j][x]
-           #   if (index1 in nogains[j]): 
-           #         nogains[j].remove(index1)
-           #for x in range(len(losses[j])):
-           #   index1 = losses[j][x]
-           #   if (index1 in nolosses[j]): 
-           #         nolosses[j].remove(index1)
-           #for index1 in gains[j]:
-           #   for index2 in nogains[j]:
-           #      nopluspath[index1][index2] = True
-           #      if (index2 in nogains[index1]):
-           #         nogains[index1].remove(index2)
-           #   for index2 in nolosses[j]:
-           #      nominuspath[index1][index2] = True
-           #      if (index2 in nolosses[index1]):
-           #         nolosses[index1].remove(index2)
-           #for index1 in losses[j]:
-           #   for index2 in nogains[j]:
-           #      nominuspath[index1][index2] = True
-           #      if (index2 in nolosses[index1]):
-           #         nolosses[index1].remove(index2)
-           #   for index2 in nolosses[j]:
-           #      nopluspath[index1][index2] = True
-           #      if (index2 in nogains[index1]):
-           #         nogains[index1].remove(index2)
-        #print "PAY FOR ", bacteria[j].strip(), ": ", u[j]
         myGraph.deactivateAll()
-        #myGraph.deactivate(bacteria[j].strip())
         if (not eliminated[j]):
            currentcandidates.remove(j)
            numcan -= 1
@@ -619,7 +567,6 @@ def atria_centrality(bacteria, myGraph, candidates):
              for k in currentcandidates:
                 if ((i != 0 and maxm > max(numlosses[k], numgains[k])) or
                     (i == 0 and (n - 1) - j + max(numgains[k], numlosses[k]) < maxm)):
-                   #print "Eliminating: ", bacteria[k].strip()
                    eliminated[k] = True
                    numcan -= 1
                 else:
@@ -635,7 +582,7 @@ def atria_centrality(bacteria, myGraph, candidates):
    # and reset its pay to zero for the next round
    U[index] = val
    maxindex = index
-   print "SELECTED: ", bacteria[index].strip(), " WITH PAY: ", U[index], ".  REMOVING TRIADS..."
+   PyPluMA.log("SELECTED: " + bacteria[index].strip() + " WITH PAY: " + str(U[index]) + ".  REMOVING TRIADS...")
    # Remove the triads from the one to mark
    # Trying to optimize triad removal TMC
    vertices = [myGraph.vertices[bacteria[index].strip()+"+"], myGraph.vertices[bacteria[index].strip()+"-"]]
@@ -716,7 +663,7 @@ class PyATriaPlugin:
      #data = [['Name', 'Centrality']]
      centvals = numpy.zeros([len(UG)])
      for i in range(len(UG)):
-       print (UG[i][1], UG[i][0])
+       PyPluMA.log(str((UG[i][1], UG[i][0])))
        bac = UG[i][1]
        if (bac[0] == '\"'):
           bac = bac[1:len(bac)-1]
@@ -727,15 +674,16 @@ class PyATriaPlugin:
        #if (i > 2):
        centvals[i] = abs(UG[i][0])
 
-     print "Wrote file: ", file
-     print "Min centrality: ", numpy.min(centvals)
-     print "Max centrality: ", numpy.max(centvals)
+     PyPluMA.log("Wrote file: "+file)
+     PyPluMA.log("Min centrality: "+str(numpy.min(centvals)))
+     PyPluMA.log("Max centrality: "+str(numpy.max(centvals)))
      mymean = numpy.mean(centvals)
      stddev = numpy.std(centvals)
-     print "Standard Deviation: ", stddev
-     print "Two STDs back: ", mymean - 2*stddev
-     print "One STD back: ", mymean - stddev
-     print "One STD forward: ", mymean + stddev
-     print "Two STDs forward: ", mymean + 2*stddev
+     PyPluMA.log("Standard Deviation: "+str(stddev))
+     PyPluMA.log("Two STDs back: "+str(mymean - 2*stddev))
+     PyPluMA.log("One STD back: "+str(mymean - stddev))
+     PyPluMA.log("One STD forward: "+str(mymean + stddev))
+     PyPluMA.log("Two STDs forward: "+str(mymean + 2*stddev))
+
 
 
