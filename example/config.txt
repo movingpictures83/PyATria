@@ -1,0 +1,2 @@
+Prefix plugins/PyATria/example/
+Plugin PyATria inputfile corrP.never.csv outputfile corrP.never.PyATria.noa
