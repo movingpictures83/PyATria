@@ -3,6 +3,8 @@ import math
 import random
 import sys
 import networkx
+import os
+sys.path = [os.path.dirname(os.path.realpath(__file__)),] + sys.path
 ############################################################
 # Dijkstra's Algorithm
 # Uses Modified Classes from the Python Data Structures Module
@@ -156,8 +158,8 @@ def initGL(n):
  for i in range(n):
     losses.append([])
     gains.append([])
-    nolosses.append(range(i+1, n))
-    nogains.append(range(i+1, n))
+    nolosses.append(list(range(i+1, n)))
+    nogains.append(list(range(i+1, n)))
 
  #losses = numpy.zeros([n])
  #gains = numpy.zeros([n])
@@ -200,23 +202,23 @@ def clearEdgeDependency(i, j):
    edgedepends[i][j] = []
 
 def addEdgeDependency(i, j, value):
-   if (not edgedepends.has_key(i)):
+   if (not i in edgedepends):
       edgedepends[i] = dict()
-   if (not edgedepends[i].has_key(j)):
+   if (not j in edgedepends[i]):
       edgedepends[i][j] = []
    edgedepends[i][j] = addUnique(edgedepends[i][j], value)
 
 def mergeEdgeDependency(i, j, otherdep):
-   if (not edgedepends.has_key(i)):
+   if (not i in edgedepends):
       edgedepends[i] = dict()
-   if (not edgedepends[i].has_key(j)):
+   if (not j in edgedepends[i]):
       edgedepends[i][j] = []
    edgedepends[i][j] = uniqueify(edgedepends[i][j] + otherdep)
 
 def getEdgeDependency(i, j):
-   if (not edgedepends.has_key(i)):
+   if (not i in edgedepends):
       return []
-   if (not edgedepends[i].has_key(j)):
+   if (not j in edgedepends[i]):
       return []
    else:
       return edgedepends[i][j]
@@ -327,7 +329,7 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
                     if (d < 0 and L[previd][j] == 0):
                        char = "-"
                        L[previd][j] = d
-		       L[j][previd] = d
+                       L[j][previd] = d
                        if (first):
                           numlosses[previd] += 1
                           numlosses[j] += 1
@@ -339,7 +341,7 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
                     elif (d > 0 and G[previd][j] == 0):
                        char = "+"
                        G[previd][j] = d
-		       G[j][previd] = d
+                       G[j][previd] = d
                        if (first):
                          numgains[previd] += 1
                          numgains[j] += 1
@@ -388,7 +390,7 @@ def dijkstra(start, bacteria, aGraph, eliminated, first):
             # of this neighbor, and the neighbor is the "+" one, OR: 
             # This new distance is negative, smaller than the current distance
             # of this neighbor, and the neighbor is the "-" one.          
-	    if ( (newDist > 0 and newDist > nextVert.getDistance() and nextVert.sign() == '+') or
+            if ( (newDist > 0 and newDist > nextVert.getDistance() and nextVert.sign() == '+') or
                  (newDist < 0 and newDist < nextVert.getDistance() and nextVert.sign() == '-') ):
                      # Update the distance for the neighboring vertex
                      nextVert.setDistance ( newDist )
@@ -592,7 +594,7 @@ def atria_centrality(bacteria, myGraph, candidates):
       toRemove = []
       for vertex3 in vertex2.connectedTo:
          if (vertex3 != vertex): # Dictionary, so will check redundantly unfortunately...
-            if (vertex.connectedTo.has_key(vertex3)):
+            if (vertex3 in vertex.connectedTo):
                #numneg = 0
                #e1 = vertex.connectedTo[vertex2]
                #e2 = vertex.connectedTo[vertex3]
