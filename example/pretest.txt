@@ -1,0 +1,2 @@
+bash -c "unzip plugins/PyATria/pythonds.zip >& /dev/null"
+mv pythonds plugins/PyATria/
