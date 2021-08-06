@@ -1,2 +1,2 @@
 bash -c "if [ ! -d pythonds ] ; then unzip plugins/PyATria/pythonds.zip ; fi >& /dev/null"
-bash -c "if [ ! -d plugins/PyATria/pythons ] ; then mv pythonds plugins/PyATria/ ; fi >& /dev/null"
+#bash -c "if [ ! -d plugins/PyATria/pythons ] ; then mv pythonds plugins/PyATria/ ; fi >& /dev/null"
